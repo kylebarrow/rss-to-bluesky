@@ -320,7 +320,7 @@ class Bluesky
 		$embed_title       = $this->get_best_text($open_graph_data['og:title'] ?? null, $rss_post['title']);
 		$embed_description = $open_graph_data['og:description'] ?? '';
 		$link              = $rss_post['link'];
-		$created_at        = !empty($rss_post['pub_date']) ? $rss_post['pub_date'] : gmdate('Y-m-d\TH:i:s.v\Z', time());
+		$created_at        = gmdate('Y-m-d\TH:i:s.v\Z', time());
 
 
 		if (strlen($text) > self::MAX_POST_SIZE)

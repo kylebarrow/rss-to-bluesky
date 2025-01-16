@@ -79,12 +79,6 @@ class RSS_Reader
 			// Clean up description
 			$description = trim(strip_tags(html_entity_decode(preg_replace('/\s+/', ' ', $description))));
 
-			// BlueSky prefers a Zulu time
-			if (!empty($pub_date))
-			{
-				$pub_date = gmdate('Y-m-d\TH:i:s.v\Z', strtotime($pub_date));
-			}
-
 			// Atom links
 			if (empty($link) && $rss_item->link->count() > 0)
 			{
