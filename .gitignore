@@ -1,2 +1,2 @@
 .env
-database/articles.sqlite
+database/posts.sqlite
