@@ -109,7 +109,7 @@ class RSS_Reader
 				'description' => $description,
 				'link'        => $link,
 				'pub_date'    => $pub_date,
-				'fingerprint' => md5($pub_date . $title . $link)
+				'fingerprint' => md5($title . $link)
 			];
 		}
 
