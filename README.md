@@ -19,7 +19,15 @@ RSS to Bluesky can optionally limit how many RSS feed posts are processed at a t
 RSS to Bluesky always posts the oldest RSS feed posts first so by using a post limit, you can process a large amount of posts by running RSS to Bluesky with a sensible pause before running again.
 
 ## Requirements
-PHP 8.* with default packages. Optionally running a local Memcached server with the PHP Memcached package enabled is recommended (see limitations below).
+PHP 8.* with the following modules:
+
+**Required:**
+- `SimpleXML` - For parsing RSS feeds
+- `GD` - For image manipulation and downsizing
+- `SQLite3` - For tracking posted items in the database
+
+**Optional:**
+- `Memcached` - For caching Bluesky authentication credentials to avoid rate limits (see limitations below). Requires a running Memcached server.
 
 ## Limitations
 ### Rate limits
