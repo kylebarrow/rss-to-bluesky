@@ -1,13 +1,39 @@
 <?php
 
+/**
+ * RSS to Bluesky
+ *
+ * Main script that reads RSS feeds and posts new items to Bluesky.
+ *
+ * @package RSS_To_Bluesky
+ * @version 1.1.0
+ */
+
+/**
+ * Main class for RSS to Bluesky integration
+ *
+ * Handles the orchestration of reading RSS feeds and posting to Bluesky.
+ */
 class RSS_To_Bluesky
 {
+	/**
+	 * Constructor - initializes the application
+	 *
+	 * Loads required class files and starts the initialization process.
+	 */
 	public function __construct()
 	{
 		$this->load_classes();
 		$this->init();
 	}
 
+	/**
+	 * Load required class files
+	 *
+	 * Includes all necessary PHP class files for the application.
+	 *
+	 * @return void
+	 */
 	private function load_classes()
 	{
 		require_once 'includes/class-get-env.php';
@@ -15,6 +41,13 @@ class RSS_To_Bluesky
 		require_once 'includes/class-bluesky.php';
 	}
 
+	/**
+	 * Initialize the RSS to Bluesky process
+	 *
+	 * Sets up environment variables, reads RSS feeds, and posts new items to Bluesky.
+	 *
+	 * @return void
+	 */
 	private function init()
 	{
 		$env             = new Get_Env();
@@ -26,6 +59,7 @@ class RSS_To_Bluesky
 		$max_age         = $env->get_max_age();
 		$post_limit      = $env->get_post_limit();
 		$dry_run         = $env->is_dry_run();
+		$show_feed_title = $env->show_feed_title();
 		$posts_processed = 0;
 		$posts_posted    = 0;
 
@@ -45,7 +79,7 @@ class RSS_To_Bluesky
 		{
 			$posts_processed++;
 			echo 'Processing RSS post' . PHP_EOL;
-			$response = $bluesky->create_post($rss_post, $languages, $dry_run);
+			$response = $bluesky->create_post($rss_post, $languages, $show_feed_title, $dry_run);
 
 			if ($response)
 			{

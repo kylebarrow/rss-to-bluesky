@@ -1,5 +1,20 @@
 <?php
 
+/**
+ * Bluesky API Integration Class
+ *
+ * Handles authentication and posting to Bluesky social network.
+ *
+ * @package RSS_To_Bluesky
+ * @version 1.1.0
+ */
+
+/**
+ * Bluesky class for API interactions
+ *
+ * Manages authentication, credential caching, open graph data retrieval,
+ * image uploading, and post creation for Bluesky.
+ */
 class Bluesky
 {
 	private const MAX_IMAGE_SIZE = 1000000;
@@ -9,6 +24,15 @@ class Bluesky
 	private $access_token = null;
 	private $did          = null;
 
+	/**
+	 * Constructor - initialize Bluesky connection
+	 *
+	 * Authenticates with the Bluesky API and stores credentials.
+	 *
+	 * @param string $host     Bluesky API host URL
+	 * @param string $handle   Bluesky user handle
+	 * @param string $password Bluesky app password
+	 */
 	public function __construct($host, $handle, $password)
 	{
 		$this->host   = $host;
@@ -22,6 +46,14 @@ class Bluesky
 		}
 	}
 
+	/**
+	 * Get the first non-empty text value
+	 *
+	 * Iterates through provided variables and returns the first non-empty one.
+	 *
+	 * @param mixed ...$variables Variable number of text values to check
+	 * @return string The first non-empty value, or empty string if all are empty
+	 */
 	private function get_best_text(...$variables)
 	{
 		foreach ($variables as $variable)
@@ -34,11 +66,31 @@ class Bluesky
 		return '';
 	}
 
+	/**
+	 * Generate a cache key for credentials
+	 *
+	 * Creates a unique cache key based on the account credentials.
+	 *
+	 * @param string $host     Bluesky API host URL
+	 * @param string $handle   Bluesky user handle
+	 * @param string $password Bluesky app password
+	 * @return string MD5 hash cache key
+	 */
 	private function get_cache_key($host, $handle, $password)
 	{
 		return 'bluesky_credentials_' . md5($handle . $host . $password);
 	}
 
+	/**
+	 * Retrieve cached credentials from Memcached
+	 *
+	 * Attempts to retrieve previously cached Bluesky credentials.
+	 *
+	 * @param string $host     Bluesky API host URL
+	 * @param string $handle   Bluesky user handle
+	 * @param string $password Bluesky app password
+	 * @return object|false Credentials object or false if not found/available
+	 */
 	private function get_cached_credentials($host, $handle, $password)
 	{
 		if (class_exists('Memcached'))
@@ -62,6 +114,17 @@ class Bluesky
 		return false;
 	}
 
+	/**
+	 * Store credentials in Memcached
+	 *
+	 * Caches Bluesky credentials for 10 minutes to reduce API calls.
+	 *
+	 * @param string $host        Bluesky API host URL
+	 * @param string $handle      Bluesky user handle
+	 * @param string $password    Bluesky app password
+	 * @param object $credentials Credentials object to cache
+	 * @return bool|void True on success, false on failure, or void if Memcached unavailable
+	 */
 	private function set_cached_credentials($host, $handle, $password, $credentials)
 	{
 		if (class_exists('Memcached'))
@@ -78,6 +141,17 @@ class Bluesky
 		}
 	}
 
+	/**
+	 * Refresh expired credentials
+	 *
+	 * Uses the refresh token to get new access credentials from Bluesky.
+	 *
+	 * @param string $host        Bluesky API host URL
+	 * @param string $handle      Bluesky user handle
+	 * @param string $password    Bluesky app password
+	 * @param object $credentials Current credentials with refresh token
+	 * @return object Refreshed credentials object
+	 */
 	private function get_refreshed_credentials($host, $handle, $password, $credentials)
 	{
 		echo 'Refreshing credentials for ' . $handle . PHP_EOL;
@@ -118,6 +192,16 @@ class Bluesky
 		return $response;
 	}
 
+	/**
+	 * Get Bluesky credentials
+	 *
+	 * Retrieves credentials from cache or creates a new session.
+	 *
+	 * @param string $host     Bluesky API host URL
+	 * @param string $handle   Bluesky user handle
+	 * @param string $password Bluesky app password
+	 * @return object|false Credentials object or false on failure
+	 */
 	private function get_credentials($host, $handle, $password)
 	{
 		$credentials = $this->get_cached_credentials($host, $handle, $password);
@@ -174,6 +258,14 @@ class Bluesky
 		return $response;
 	}
 
+	/**
+	 * Extract Open Graph metadata from a URL
+	 *
+	 * Parses HTML to extract og: meta tags for rich link previews.
+	 *
+	 * @param string $url The URL to extract metadata from
+	 * @return array Associative array of Open Graph properties
+	 */
 	private function get_open_graph_data($url)
 	{
 		if (empty($url))
@@ -212,6 +304,14 @@ class Bluesky
 		return $data;
 	}
 
+	/**
+	 * Reduce image size to meet upload limits
+	 *
+	 * Iteratively scales down an image until it's under MAX_IMAGE_SIZE.
+	 *
+	 * @param string $image_blob Binary image data
+	 * @return string Downsized JPEG image data
+	 */
 	private function downsize_image($image_blob)
 	{
 		echo 'Downsizing image' . PHP_EOL;
@@ -241,6 +341,15 @@ class Bluesky
 		return $image_blob;
 	}
 
+	/**
+	 * Upload an image to Bluesky
+	 *
+	 * Downloads an image from a URL and uploads it as a blob to Bluesky.
+	 * Automatically downsizes if the image exceeds size limits.
+	 *
+	 * @param string $url URL of the image to upload
+	 * @return object|false Blob object on success, false on failure
+	 */
 	private function upload_image($url)
 	{
 		echo 'Uploading image ' . $url . PHP_EOL;
@@ -300,7 +409,19 @@ class Bluesky
 		return $response->blob;
 	}
 
-	public function create_post($rss_post, $languages, $dry_run = false)
+	/**
+	 * Create a Bluesky post from RSS data
+	 *
+	 * Formats RSS post data and creates a Bluesky post with embedded link card.
+	 * Extracts Open Graph data and uploads thumbnail images when available.
+	 *
+	 * @param array $rss_post        Associative array with title, description, link, and optionally feed_title
+	 * @param array $languages       Array of language codes for the post
+	 * @param bool  $show_feed_title If true, prepends feed title in uppercase to the post
+	 * @param bool  $dry_run         If true, only outputs post data without posting
+	 * @return object|false Response object on success, false on failure or dry run
+	 */
+	public function create_post($rss_post, $languages, $show_feed_title = false, $dry_run = false)
 	{
 		if (empty($this->access_token) || empty($this->did))
 		{
@@ -322,6 +443,12 @@ class Bluesky
 		$link              = $rss_post['link'];
 		$created_at        = gmdate('Y-m-d\TH:i:s.v\Z', time());
 
+		// Prepend feed title if enabled
+		if ($show_feed_title && !empty($rss_post['feed_title']))
+		{
+			$feed_title_uppercase = strtoupper($rss_post['feed_title']);
+			$text                 = $feed_title_uppercase . "\n\n" . $text;
+		}
 
 		if (strlen($text) > self::MAX_POST_SIZE)
 		{

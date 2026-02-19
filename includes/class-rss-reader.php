@@ -1,11 +1,33 @@
 <?php
 
+/**
+ * RSS Reader Class
+ *
+ * Handles reading RSS feeds and tracking posted items in a SQLite database.
+ *
+ * @package RSS_To_Bluesky
+ * @version 1.1.0
+ */
+
+/**
+ * RSS_Reader class for feed parsing and post tracking
+ *
+ * Manages RSS feed reading, post deduplication, and SQLite database operations.
+ */
 class RSS_Reader
 {
 	private $database_root;
 	private $max_age;
 	private $post_limit;
 
+	/**
+	 * Constructor - initialize RSS reader
+	 *
+	 * Sets up database path, age limits, and creates database if needed.
+	 *
+	 * @param int       $max_age    Maximum age in hours for posts to consider
+	 * @param int|false $post_limit Maximum number of posts per run, or false for unlimited
+	 */
 	public function __construct($max_age, $post_limit)
 	{
 		$this->database_root = dirname(__DIR__) . '/database';
@@ -14,6 +36,13 @@ class RSS_Reader
 		$this->create_database();
 	}
 
+	/**
+	 * Create the SQLite database
+	 *
+	 * Initializes the posts database with required schema if it doesn't exist.
+	 *
+	 * @return void
+	 */
 	public function create_database()
 	{
 		if (!file_exists($this->database_root . '/posts.sqlite'))
@@ -37,11 +66,20 @@ class RSS_Reader
 		}
 	}
 
+	/**
+	 * Parse RSS feed and extract posts
+	 *
+	 * Supports RSS 2.0, RSS 1.0, and Atom feed formats.
+	 *
+	 * @param string $url RSS feed URL
+	 * @return array Array of posts with title, description, link, pub_date, fingerprint, and feed_title
+	 */
 	private function get_posts_from_rss($url)
 	{
-		$rss       = simplexml_load_file($url);
-		$posts     = [];
-		$rss_items = [];
+		$rss        = simplexml_load_file($url);
+		$posts      = [];
+		$rss_items  = [];
+		$feed_title = '';
 
 		if (empty($rss))
 		{
@@ -52,17 +90,20 @@ class RSS_Reader
 		// RSS 2.0
 		if (!empty($rss->channel->item))
 		{
-			$rss_items = $rss->channel->item;
+			$rss_items  = $rss->channel->item;
+			$feed_title = (string) $rss->channel->title;
 		}
 		// RSS 1.0
 		elseif (!empty($rss->item))
 		{
-			$rss_items = $rss->item;
+			$rss_items  = $rss->item;
+			$feed_title = (string) $rss->channel->title;
 		}
 		// Atom
 		elseif (!empty($rss->entry))
 		{
-			$rss_items = $rss->entry;
+			$rss_items  = $rss->entry;
+			$feed_title = (string) $rss->title;
 		}
 		else
 		{
@@ -103,13 +144,22 @@ class RSS_Reader
 				'description' => $description,
 				'link'        => $link,
 				'pub_date'    => $pub_date,
-				'fingerprint' => md5($title . $link)
+				'fingerprint' => md5($title . $link),
+				'feed_title'  => $feed_title
 			];
 		}
 
 		return $posts;
 	}
 
+	/**
+	 * Fetch posts from multiple RSS feeds
+	 *
+	 * Combines posts from all provided feed URLs into a single array.
+	 *
+	 * @param array $urls Array of RSS feed URLs
+	 * @return array Combined array of all posts from all feeds
+	 */
 	private function get_all_posts($urls)
 	{
 		$posts = [];
@@ -122,6 +172,15 @@ class RSS_Reader
 		return $posts;
 	}
 
+	/**
+	 * Get new posts that haven't been posted yet
+	 *
+	 * Fetches posts from feeds, filters by age and duplicates, checks against
+	 * database, and returns only new posts within the configured limits.
+	 *
+	 * @param array $urls Array of RSS feed URLs to check
+	 * @return array Array of new posts ready to be posted
+	 */
 	public function get_new_posts($urls)
 	{
 		$posts        = $this->get_all_posts($urls);

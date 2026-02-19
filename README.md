@@ -59,6 +59,7 @@ RSS to Bluesky also supports the following optional `.env` values:
 - `BLUESKY_POST_LIMIT`: The maximum amount of RSS feed posts posted to Bluesky at one time. The default post limit is no limit.
 - `RSS_MAX_AGE`: The maximum age in hours in the past an RSS feed post publication date must be below to be posted to Bluesky. The default maximum age is 24 hours.
 - `BLUESKY_HOST`: The Bluesky account hosting provider. Unless you’ve setup your own Bluesky PDS, you don’t need to set this value. The default host is `https://bsky.social`.
+- `SHOW_FEED_TITLE`: A boolean which when enabled will prepend the feed title in uppercase with a line break at the top of each Bluesky post. This is useful for thematic accounts that post from multiple sources and want to identify which source each post came from.
 - `DRY_RUN`: A boolean which when enabled will do everything except post to Bluesky. Dry run will still authenticate with Bluesky so please keep in mind the limitations above.
 
 Example `.env` file with Japanese language posts:
@@ -106,6 +107,15 @@ BLUESKY_APP_PASSWORD=your_bluesky_app_password
 RSS_FEEDS=https://example.com/feed.xml
 ```
 
+Example `.env` file with feed title display enabled:
+
+```
+BLUESKY_HANDLE=your_bluesky_handle
+BLUESKY_APP_PASSWORD=your_bluesky_app_password
+RSS_FEEDS=https://example.com/feed.xml
+SHOW_FEED_TITLE=true
+```
+
 Example `.env` file with dry run enabled:
 
 ```
@@ -125,6 +135,7 @@ RSS_FEEDS=https://example.com/feed.xml
 BLUESKY_POST_LANGUAGES=ja
 BLUESKY_POST_LIMIT=5
 RSS_MAX_AGE=2
+SHOW_FEED_TITLE=true
 DRY_RUN=true
 ```
 
@@ -148,6 +159,14 @@ Then add something like the following to your crontab file and save. This exampl
 ```
 */5 * * * * /path/to/php /path/to/rss-to-bluesky.php  > /dev/null 2>&1
 ```
+
+## Changelog
+
+### v1.1.0
+- Added `SHOW_FEED_TITLE` option to display feed titles at the top of posts
+
+### v1.0.0
+- Initial release
 
 ## Contributing
 If you can handle tabs and Allman formatting, fork and drop a pull request.
