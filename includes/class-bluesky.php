@@ -6,7 +6,7 @@
  * Handles authentication and posting to Bluesky social network.
  *
  * @package RSS_To_Bluesky
- * @version 1.1.0
+ * @version 1.2.0
  */
 
 /**
@@ -415,13 +415,15 @@ class Bluesky
 	 * Formats RSS post data and creates a Bluesky post with embedded link card.
 	 * Extracts Open Graph data and uploads thumbnail images when available.
 	 *
-	 * @param array $rss_post        Associative array with title, description, link, and optionally feed_title
-	 * @param array $languages       Array of language codes for the post
-	 * @param bool  $show_feed_title If true, prepends feed title in uppercase to the post
-	 * @param bool  $dry_run         If true, only outputs post data without posting
+	 * @param array  $rss_post          Associative array with title, description, link, and optionally feed_title
+	 * @param array  $languages         Array of language codes for the post
+	 * @param bool   $show_feed_title   If true, prepends feed title in uppercase to the post
+	 * @param string $feed_title_prefix Optional prefix to prepend to feed title
+	 * @param string $feed_title_suffix Optional suffix to append to feed title
+	 * @param bool   $dry_run           If true, only outputs post data without posting
 	 * @return object|false Response object on success, false on failure or dry run
 	 */
-	public function create_post($rss_post, $languages, $show_feed_title = false, $dry_run = false)
+	public function create_post($rss_post, $languages, $show_feed_title = false, $feed_title_prefix = '', $feed_title_suffix = '', $dry_run = false)
 	{
 		if (empty($this->access_token) || empty($this->did))
 		{
@@ -446,8 +448,8 @@ class Bluesky
 		// Prepend feed title if enabled
 		if ($show_feed_title && !empty($rss_post['feed_title']))
 		{
-			$feed_title_uppercase = strtoupper($rss_post['feed_title']);
-			$text                 = $feed_title_uppercase . "\n\n" . $text;
+			$formatted_feed_title = $feed_title_prefix . $rss_post['feed_title'] . $feed_title_suffix;
+			$text                 = $formatted_feed_title . "\n" . $text;
 		}
 
 		if (strlen($text) > self::MAX_POST_SIZE)

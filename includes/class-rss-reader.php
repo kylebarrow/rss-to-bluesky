@@ -6,7 +6,7 @@
  * Handles reading RSS feeds and tracking posted items in a SQLite database.
  *
  * @package RSS_To_Bluesky
- * @version 1.1.0
+ * @version 1.2.0
  */
 
 /**

@@ -6,7 +6,7 @@
  * Handles reading and parsing environment variables from .env file.
  *
  * @package RSS_To_Bluesky
- * @version 1.1.0
+ * @version 1.2.0
  */
 
 /**
@@ -167,5 +167,29 @@ class Get_Env
 	public function show_feed_title()
 	{
 		return $this->env['SHOW_FEED_TITLE'] ?? false;
+	}
+
+	/**
+	 * Get the feed title prefix
+	 *
+	 * Returns the prefix to prepend to feed titles in posts.
+	 *
+	 * @return string Feed title prefix (default: empty string)
+	 */
+	public function get_feed_title_prefix()
+	{
+		return stripcslashes($this->env['FEED_TITLE_PREFIX'] ?? '');
+	}
+
+	/**
+	 * Get the feed title suffix
+	 *
+	 * Returns the suffix to append to feed titles in posts.
+	 *
+	 * @return string Feed title suffix (default: empty string)
+	 */
+	public function get_feed_title_suffix()
+	{
+		return stripcslashes($this->env['FEED_TITLE_SUFFIX'] ?? '');
 	}
 }

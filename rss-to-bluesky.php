@@ -6,7 +6,7 @@
  * Main script that reads RSS feeds and posts new items to Bluesky.
  *
  * @package RSS_To_Bluesky
- * @version 1.1.0
+ * @version 1.2.0
  */
 
 /**
@@ -50,18 +50,20 @@ class RSS_To_Bluesky
 	 */
 	private function init()
 	{
-		$env             = new Get_Env();
-		$host            = $env->get_host();
-		$handle          = $env->get_handle();
-		$app_password    = $env->get_app_password();
-		$feeds           = $env->get_feeds();
-		$languages       = $env->get_post_languages();
-		$max_age         = $env->get_max_age();
-		$post_limit      = $env->get_post_limit();
-		$dry_run         = $env->is_dry_run();
-		$show_feed_title = $env->show_feed_title();
-		$posts_processed = 0;
-		$posts_posted    = 0;
+		$env               = new Get_Env();
+		$host              = $env->get_host();
+		$handle            = $env->get_handle();
+		$app_password      = $env->get_app_password();
+		$feeds             = $env->get_feeds();
+		$languages         = $env->get_post_languages();
+		$max_age           = $env->get_max_age();
+		$post_limit        = $env->get_post_limit();
+		$dry_run           = $env->is_dry_run();
+		$show_feed_title   = $env->show_feed_title();
+		$feed_title_prefix = $env->get_feed_title_prefix();
+		$feed_title_suffix = $env->get_feed_title_suffix();
+		$posts_processed   = 0;
+		$posts_posted      = 0;
 
 		$rss_reader = new RSS_Reader($max_age, $post_limit);
 		$bluesky    = new Bluesky($host, $handle, $app_password);
@@ -79,7 +81,7 @@ class RSS_To_Bluesky
 		{
 			$posts_processed++;
 			echo 'Processing RSS post' . PHP_EOL;
-			$response = $bluesky->create_post($rss_post, $languages, $show_feed_title, $dry_run);
+			$response = $bluesky->create_post($rss_post, $languages, $show_feed_title, $feed_title_prefix, $feed_title_suffix, $dry_run);
 
 			if ($response)
 			{
